@@ -1,6 +1,13 @@
-import {IVertex} from '../types';
+import { IVertex } from '../types';
 
-export const hexAdjacentVertices : Array<[IVertex, IVertex, IVertex, IVertex, IVertex, IVertex]> = [
+export const hexAdjacentVertices: Array<[
+    IVertex,
+    IVertex,
+    IVertex,
+    IVertex,
+    IVertex,
+    IVertex
+]> = [
     [0, 1, 2, 8, 9, 10],
     [2, 3, 4, 10, 11, 12],
     [4, 5, 6, 12, 13, 14],
@@ -19,5 +26,5 @@ export const hexAdjacentVertices : Array<[IVertex, IVertex, IVertex, IVertex, IV
     [34, 35, 36, 44, 45, 46],
     [39, 40, 41, 47, 48, 49],
     [41, 42, 43, 49, 50, 51],
-    [43, 44, 45, 51, 52, 53]
-];
+    [43, 44, 45, 51, 52, 53],
+]

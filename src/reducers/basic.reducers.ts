@@ -1,9 +1,11 @@
 import { INITIALIZE_GAME } from '../actions';
-import {cardList, edgeList, hexAdjacentVertices, hexList, numVertices, playerColors, vertexAdjacentHexes} from '../constants';
-import {Color, ICatanState, IPlayerResources, IRoad, ITown} from '../types';
+import {
+    cardList, edgeList, hexAdjacentVertices, hexList, numVertices, playerColors, vertexAdjacentHexes
+} from '../constants';
+import { Color, ICatanState, IPlayerResources, IRoad, ITown } from '../types';
 import { convertTerrainToResource, getCurrentPlayerColor, newEvent } from '../utils/utils';
 
-export const initializeState = () => {
+export const initializeState = ():ICatanState => {
     const playerResources =
         playerColors.reduce((accm, color) => {
             accm[color] = ({
@@ -22,7 +24,7 @@ export const initializeState = () => {
         }, {} as {[K in Color]: string}); // hacky
     return {
         allEdges: edgeList,
-        allHexagons: hexList,
+        allHexagons: hexList(),
         cards: cardList,
         eventList: [newEvent(INITIALIZE_GAME, null, 'Initialize game')],
         hexAdjacentVertices,
@@ -32,7 +34,7 @@ export const initializeState = () => {
         playerWithLargestArmy: null,
         playerWithLongestRoad: null,
         roads: [],
-        thiefHex: hexList.findIndex(hex => hex.terrain === 'desert'),
+        thiefHex: hexList().findIndex(hex => hex.terrain === 'desert'),
         totalVertices: numVertices,
         towns: [],
         turn: 0,

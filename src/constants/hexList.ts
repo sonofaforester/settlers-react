@@ -1,85 +1,79 @@
-import {IHexagon} from '../types';
+import { IHexagon, Terrain } from '../types';
 
-export const hexList : IHexagon[] = [
-	// ROW 1
-	{
-		dieRoll: 11,
-		terrain: 'forest'
-	},
-	{
-		dieRoll: 12,
-		terrain: 'pasture'
-	},
-	{
-		dieRoll: 9,
-		terrain: 'field'
-	},
-	// ROW 2
-	{
-		dieRoll: 4,
-		terrain: 'hill'
-	},
-	{
-		dieRoll: 6,
-		terrain: 'mountain'		
-	},
-	{
-		dieRoll: 5,
-		terrain: 'hill'
-	},
-	{
-		dieRoll: 10,
-		terrain: 'pasture'
-	},
-	// ROW 3
-	{
-		dieRoll: 7,
-		terrain: 'desert'
-	},
-	{
-		dieRoll: 3,
-		terrain: 'forest'
-	},
-	{
-		dieRoll: 11,
-		terrain: 'field'
-	},
-	{
-		dieRoll: 4,
-		terrain: 'forest'
-	},
-	{
-		dieRoll: 8,
-		terrain: 'field'
-	},
-	// ROW 4
-	{
-		dieRoll: 8,
-		terrain: 'hill'
-	},
-	{
-		dieRoll: 10,
-		terrain: 'pasture'
-	},
-	{
-		dieRoll: 9,
-		terrain: 'pasture'
-	},
-	{
-		dieRoll: 3,
-		terrain: 'mountain'
-	},
-	// ROW 5
-	{
-		dieRoll: 5,
-		terrain: 'mountain'
-	},
-	{
-		dieRoll: 2,
-		terrain: 'field'
-	},
-	{
-		dieRoll: 6,
-		terrain: 'forest'
-	}
-];
+let computedHexList: IHexagon[]
+
+const computeHexList = (): IHexagon[] => {
+    const tiles: Terrain[] = [
+        'forest',
+        'forest',
+        'forest',
+        'forest',
+        'pasture',
+        'pasture',
+        'pasture',
+        'pasture',
+        'field',
+        'field',
+        'field',
+        'field',
+        'hill',
+        'hill',
+        'hill',
+        'mountain',
+        'mountain',
+        'mountain',
+        'desert',
+    ]
+
+    const dieRolls: number[] = [
+        2,
+        3,
+        3,
+        4,
+        4,
+        5,
+        5,
+        6,
+        6,
+        8,
+        8,
+        9,
+        9,
+        10,
+        10,
+        11,
+        11,
+        12,
+    ]
+
+    const retval: IHexagon[] = []
+
+    while (tiles.length > 0) {
+        const tileIdx = Math.floor(Math.random() * tiles.length)
+        const dieIdx = Math.floor(Math.random() * dieRolls.length)
+        const terrain = tiles[tileIdx]
+        tiles.splice(tileIdx, 1)
+
+        let dieRoll = 7
+
+        if (terrain !== 'desert') {
+            dieRoll = dieRolls[dieIdx]
+            dieRolls.splice(dieIdx, 1)
+        }
+
+        retval.push({
+            dieRoll,
+            terrain,
+        })
+    }
+
+    return retval
+}
+
+export const hexList = (): IHexagon[] => {
+    if (!computedHexList) {
+        computedHexList = computeHexList()
+    }
+
+    return computedHexList
+}
