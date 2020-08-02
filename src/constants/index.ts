@@ -5,3 +5,4 @@ export * from './hexAdjacentVertices';
 export * from './hexList';
 export * from './players';
 export * from './vertices';
+export * from './vertexAdjacentHexes';

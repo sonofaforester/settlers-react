@@ -1,34 +1,22 @@
+import './App.css';
+
 import * as React from 'react';
 import { connect } from 'react-redux';
+
+import {
+    BANK_TRADE, BUILD_DEVELOPMENT_CARD, BUILD_ROAD, BUILD_TOWN, buildRoad, buildTown,
+    distributeResources, END_PLAYER_TURN, endPlayerTurn, initialMove1, initialMove2, setPlayerNames,
+    UPGRADE_TOWN
+} from './actions';
+import { createBasicBot } from './bots/basic.bot';
+import { createSmarterBot } from './bots/smarterbot.bot';
 import Board from './components/board/board';
 import Narrative from './components/narrative/narrative';
 import Scores from './components/scores/scores';
-
-import './App.css';
-
-import {
-  BANK_TRADE,
-  BUILD_DEVELOPMENT_CARD,
-  BUILD_ROAD,
-  BUILD_TOWN,
-  buildRoad,
-  buildTown,
-  distributeResources,
-  END_PLAYER_TURN,
-  endPlayerTurn,
-  initialMove1,
-  initialMove2,
-  setPlayerNames,
-  UPGRADE_TOWN
-} from './actions';
-import { createBasicBot } from './bots/basic.bot';
 import { ICatanState, IEdge } from './types';
 import { IBotMakeTurnAction, ICatanBot } from './types/bot';
 import { playerHasWon } from './utils/scoring';
-import {
-  getCurrentPlayerColor,
-  rollADie
-} from './utils/utils';
+import { getCurrentPlayerColor, rollADie } from './utils/utils';
 
 interface IAppProps {
   dispatchBotMove: (botAction: IBotMakeTurnAction) => any,
@@ -75,7 +63,7 @@ class App extends React.Component<IAppProps, IAppState> {
     super(props);
     this.state = {
       players: {
-        blue: createBasicBot('blue'),
+        blue: createSmarterBot('blue'),
         green: createBasicBot('green'),
         orange: createBasicBot('orange'),
         red: createBasicBot('red')
@@ -91,7 +79,7 @@ class App extends React.Component<IAppProps, IAppState> {
 
   public componentDidMount() {
     // TODO: change to timeout after dispatches
-    this.timerID = setInterval(()=> this.tick(), 5000);
+    this.timerID = setInterval(()=> this.tick(), 50);
   }
 
   public componentWillUnmount() {

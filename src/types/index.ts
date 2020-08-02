@@ -56,6 +56,7 @@ export interface ICatanState {
     // allVertices:
     // totalHexagons: number;
     hexAdjacentVertices: Array<[IVertex, IVertex, IVertex, IVertex, IVertex, IVertex]>;
+    vertexAdjacentHexes: IHexagon[][];
     totalVertices: number;
     allEdges: IEdge[];
 

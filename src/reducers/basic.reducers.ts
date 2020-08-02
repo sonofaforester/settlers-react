@@ -1,5 +1,5 @@
 import { INITIALIZE_GAME } from '../actions';
-import {cardList, edgeList, hexAdjacentVertices, hexList, numVertices, playerColors} from '../constants';
+import {cardList, edgeList, hexAdjacentVertices, hexList, numVertices, playerColors, vertexAdjacentHexes} from '../constants';
 import {Color, ICatanState, IPlayerResources, IRoad, ITown} from '../types';
 import { convertTerrainToResource, getCurrentPlayerColor, newEvent } from '../utils/utils';
 
@@ -36,7 +36,8 @@ export const initializeState = () => {
         totalVertices: numVertices,
         towns: [],
         turn: 0,
-        turnSubAction: 0
+        turnSubAction: 0,
+        vertexAdjacentHexes
     };
 };
 
