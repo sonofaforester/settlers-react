@@ -4,25 +4,25 @@ let computedHexList: IHexagon[]
 
 const computeHexList = (): IHexagon[] => {
     const tiles: Terrain[] = [
-        'forest',
-        'forest',
-        'forest',
-        'forest',
-        'pasture',
-        'pasture',
-        'pasture',
-        'pasture',
-        'field',
-        'field',
-        'field',
-        'field',
-        'hill',
-        'hill',
-        'hill',
-        'mountain',
-        'mountain',
-        'mountain',
-        'desert',
+        Terrain.forest,
+        Terrain.forest,
+        Terrain.forest,
+        Terrain.forest,
+        Terrain.pasture,
+        Terrain.pasture,
+        Terrain.pasture,
+        Terrain.pasture,
+        Terrain.field,
+        Terrain.field,
+        Terrain.field,
+        Terrain.field,
+        Terrain.hill,
+        Terrain.hill,
+        Terrain.hill,
+        Terrain.mountain,
+        Terrain.mountain,
+        Terrain.mountain,
+        Terrain.desert,
     ]
 
     const dieRolls: number[] = [
@@ -56,7 +56,7 @@ const computeHexList = (): IHexagon[] => {
 
         let dieRoll = 7
 
-        if (terrain !== 'desert') {
+        if (terrain !== Terrain.desert) {
             dieRoll = dieRolls[dieIdx]
             dieRolls.splice(dieIdx, 1)
         }

@@ -1,3 +1,4 @@
+import { dieProbability } from '../constants';
 import { Color, ICatanState } from '../types';
 import { ICatanBot } from '../types/bot';
 import { Bot } from './bot';
@@ -34,12 +35,12 @@ class SmarterBot extends Bot {
 
             let rollProbabilityA = 0
             state.vertexAdjacentHexes[a].forEach(
-                (h) => (rollProbabilityA += 7 - Math.abs(7 - h.dieRoll))
+                (h) => (rollProbabilityA += dieProbability[h.dieRoll])
             )
 
             let rollProbabilityB = 0
             state.vertexAdjacentHexes[b].forEach(
-                (h) => (rollProbabilityB += 7 - Math.abs(7 - h.dieRoll))
+                (h) => (rollProbabilityB += dieProbability[h.dieRoll])
             )
 
             return rollProbabilityA - rollProbabilityB
@@ -71,10 +72,20 @@ class SmarterBot extends Bot {
     }
 
     protected buildTown(validTowns: number[], state: ICatanState) {
+        const rprob = this.resourceProbability(state)
+
+        /* tslint:disable */
+        console.log(rprob)
+        /* tslint:enable */
+
         const bestTown = this.sortTowns(validTowns, state).pop() as number
         return {
             targetVtx: bestTown,
             type: 'BUILD_TOWN',
         }
+    }
+
+    private resourceProbability = (state: ICatanState) => {
+        return null
     }
 }

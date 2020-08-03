@@ -13,7 +13,7 @@ import { createSmarterBot } from './bots/smarterbot.bot';
 import Board from './components/board/board';
 import Narrative from './components/narrative/narrative';
 import Scores from './components/scores/scores';
-import { ICatanState, IEdge } from './types';
+import { Color, ICatanState, IEdge } from './types';
 import { IBotMakeTurnAction, ICatanBot } from './types/bot';
 import { playerHasWon } from './utils/scoring';
 import { getCurrentPlayerColor, rollADie } from './utils/utils';
@@ -66,10 +66,10 @@ class App extends React.Component<IAppProps, IAppState> {
         super(props)
         this.state = {
             players: {
-                blue: createSmarterBot('blue'),
-                green: createBasicBot('green'),
-                orange: createBasicBot('orange'),
-                red: createBasicBot('red'),
+                blue: createSmarterBot(Color.blue),
+                green: createBasicBot(Color.green),
+                orange: createBasicBot(Color.orange),
+                red: createBasicBot(Color.red),
             },
         }
         this.props.dispatchPlayerNames({
@@ -98,10 +98,13 @@ class App extends React.Component<IAppProps, IAppState> {
         const turnSubAction = this.props.gameState.turnSubAction
         const numPlayers = this.props.gameState.playerColors.length
         const currentColor = getCurrentPlayerColor(this.props.gameState)
-        const currentPlayer = this.state.players[currentColor]
+        const currentPlayer = this.state.players[Color[currentColor]]
 
         if (playerHasWon(this.props.gameState)) {
             clearInterval(this.timerID)
+            /* tslint:disable */
+            console.log(`${currentColor} wins`)
+            /* tslint:enable */
             // GAME OVER
         }
         if (turn >= 0 && turn < numPlayers) {

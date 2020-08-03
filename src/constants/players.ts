@@ -1,4 +1,5 @@
-import {Color} from '../types';
+import { Color } from '../types';
+
 /* const playerScoreboard = {
    playerName: '',
    playerColor: '',
@@ -17,4 +18,9 @@ import {Color} from '../types';
 };
 */
 
-export const playerColors : Color[] = ['red', 'orange', 'green', 'blue'];
+export const playerColors: Color[] = [
+    Color.red,
+    Color.orange,
+    Color.green,
+    Color.blue,
+]
