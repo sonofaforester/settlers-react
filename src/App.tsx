@@ -13,6 +13,7 @@ import { createSmarterBot } from './bots/smarterbot.bot';
 import Board from './components/board/board';
 import Narrative from './components/narrative/narrative';
 import Scores from './components/scores/scores';
+import { dieProbability } from './constants';
 import { Color, ICatanState, IEdge } from './types';
 import { IBotMakeTurnAction, ICatanBot } from './types/bot';
 import { playerHasWon } from './utils/scoring';
@@ -61,6 +62,7 @@ const mapDispatchToProps = (dispatch: any, ownProps: any) => ({
 
 class App extends React.Component<IAppProps, IAppState> {
     private timerID: NodeJS.Timer
+    private dieRolls: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     constructor(props: IAppProps) {
         super(props)
@@ -91,7 +93,7 @@ class App extends React.Component<IAppProps, IAppState> {
 
     public tick() {
         /* tslint:disable */
-        console.log('tick')
+        //console.log('tick')
         /* tslint:enable */
 
         const turn = this.props.gameState.turn
@@ -103,7 +105,17 @@ class App extends React.Component<IAppProps, IAppState> {
         if (playerHasWon(this.props.gameState)) {
             clearInterval(this.timerID)
             /* tslint:disable */
-            console.log(`${currentColor} wins`)
+            console.log(this.dieRolls)
+
+            const sum = this.dieRolls.reduce(function (a, b) {
+                return a + b
+            }, 0)
+
+            const prob = this.dieRolls.map((r, i) => {
+                return r / sum - dieProbability[i]
+            })
+
+            console.log(prob)
             /* tslint:enable */
             // GAME OVER
         }
@@ -125,9 +137,9 @@ class App extends React.Component<IAppProps, IAppState> {
             // NORMAL TURN - DISTRIBUTE RESOURCES
             // roll dice
             const dieRoll = rollADie() + rollADie()
-            // tslint:disable
-            console.log(currentColor)
-            // tslint:enable
+
+            this.dieRolls[dieRoll] += 1
+
             // distribute resources or move thief
             if (dieRoll !== 7) {
                 this.props.dispatchDistributeResources(dieRoll)
