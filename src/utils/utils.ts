@@ -61,6 +61,11 @@ export function getCurrentPlayerColor(state: ICatanState) {
     }
 }
 
+export function getCurrentPlayer(state: ICatanState) {
+    const color = getCurrentPlayerColor(state)
+    return state.players[color]
+}
+
 export function convertTerrainToResource(terrain: Terrain): Resource | null {
     switch (terrain) {
         case Terrain.forest:

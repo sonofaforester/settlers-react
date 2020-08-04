@@ -1,3 +1,5 @@
+import { ICatanBot } from './bot';
+
 export type IVertex = number
 
 export type IEdge = [IVertex, IVertex]
@@ -84,21 +86,55 @@ export interface ICatanState {
 
     eventList: IEvent[]
 
-    towns: ITown[]
-    roads: IRoad[]
     cards: ICard[]
-
+    players: ICatanBot[]
     playerColors: Color[]
-    playerResources: {
-        [K in Color]: IPlayerResources
-    }
     playerNames: {
         [K in Color]: string
     }
     playerWithLargestArmy: Color | null
     playerWithLongestRoad: Color | null
+    roads: () => IRoad[]
+    towns: () => ITown[]
     turn: number
     turnSubAction: number
+}
+
+export class CatanState implements ICatanState {
+    public hexAdjacentVertices: Array<
+        [IVertex, IVertex, IVertex, IVertex, IVertex, IVertex]
+    >
+
+    public vertexAdjacentHexes: IHexagon[][]
+    public allHexagons: IHexagon[]
+    public totalVertices: number
+    public allEdges: IEdge[]
+    public thiefHex: number
+    public eventList: IEvent[]
+    public cards: ICard[]
+    public players: ICatanBot[]
+    public playerColors: Color[]
+    public playerNames: { 0: string; 1: string; 2: string; 3: string }
+    public playerWithLargestArmy: Color | null
+    public playerWithLongestRoad: Color | null
+    public turn: number
+    public turnSubAction: number
+
+    public constructor(init?: Partial<ICatanState>) {
+        Object.assign(this, init)
+    }
+
+    public roads = (): IRoad[] => {
+        const roads: IRoad[] = []
+        this.players.forEach((p) => roads.push(...p.roads))
+        return roads
+    }
+
+    public towns = (): ITown[] => {
+        const towns: ITown[] = []
+        this.players.forEach((p) => towns.push(...p.towns))
+        return towns
+    }
 }
 
 export interface IPlayerScore extends IPlayerResources {

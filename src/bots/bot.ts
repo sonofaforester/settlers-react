@@ -1,15 +1,27 @@
 import { cityCost, roadCost, townCost } from '../constants';
-import { Color, ICatanState, ITown, IVertex } from '../types';
+import { Color, ICatanState, IPlayerResources, IRoad, ITown, IVertex } from '../types';
 import { IDefaultAction } from '../types/actions';
 import { ICatanBot } from '../types/bot';
 import { random } from '../utils/utils';
 import { canAfford, getValidRoadLocations, getValidTownLocations } from '../utils/verification';
 
 export class Bot implements ICatanBot {
+    public color: Color
+    public playerResources: IPlayerResources = {
+        bricks: 0,
+        lumber: 0,
+        ore: 0,
+        sheep: 0,
+        wheat: 0,
+    } as IPlayerResources
+    public roads: IRoad[]
+    public towns: ITown[]
     protected savedRandomNum = random(1000)
-    private color: Color
+
     constructor(color: Color) {
         this.color = color
+        this.roads = []
+        this.towns = []
     }
 
     public makeInitialMove1(state: ICatanState) {
@@ -33,11 +45,9 @@ export class Bot implements ICatanBot {
     }
 
     public makeTurn(state: ICatanState) {
-        const resources = state.playerResources[this.getOwnColor()]
+        const resources = this.playerResources
         const canAffordCity = canAfford(resources, cityCost)
-        const validCities = state.towns.filter(
-            (t) => t.color === this.getOwnColor() && !t.isCity
-        )
+        const validCities = this.towns.filter((t) => !t.isCity)
         const canAffordTown = canAfford(resources, townCost)
         const validTowns = getValidTownLocations(state, this.getOwnColor())
         const canAffordRoad = canAfford(resources, roadCost)
@@ -126,18 +136,27 @@ export class Bot implements ICatanBot {
         return validTownLocations
     }
 
+    protected sortTowns = (towns: number[], state: ICatanState): number[] => {
+        const sortedTowns = towns.sort((a, b) => {
+            return Math.floor(Math.random() * 3) - 1
+        })
+
+        return sortedTowns
+    }
+
     protected basicInitialMove(state: ICatanState) {
         const validTowns = this.getValidInitTownLocations(
             state,
             this.getOwnColor()
         )
-        const randomTownIdx = Math.floor(Math.random() * validTowns.length)
-        const townVertex = validTowns[randomTownIdx]
+        const sortedTowns = this.sortTowns(validTowns, state)
+        const townVertex = sortedTowns.pop() as number
         const adjacentRoads = state.allEdges
             .filter((e) => e[0] === townVertex || e[1] === townVertex)
             .filter(
                 (e) =>
-                    typeof state.roads.find((r) => r.edge === e) === 'undefined'
+                    typeof state.roads().find((r) => r.edge === e) ===
+                    'undefined'
             )
         const randomRoadIdx = Math.floor(Math.random() * adjacentRoads.length)
         const roadEdge = adjacentRoads[randomRoadIdx]
@@ -157,9 +176,9 @@ export class Bot implements ICatanBot {
     }
 
     protected buildTown(validTowns: number[], state: ICatanState) {
-        const randomTownIdx = random(validTowns.length)
+        const bestTown = this.sortTowns(validTowns, state).pop() as number
         return {
-            targetVtx: validTowns[randomTownIdx],
+            targetVtx: bestTown,
             type: 'BUILD_TOWN',
         }
     }
@@ -172,13 +191,14 @@ export class Bot implements ICatanBot {
 
         // there must not be another town here
         const hasExistingTown =
-            typeof state.towns.find((t) => t.vertex === vertex) !== 'undefined'
+            typeof state.towns().find((t) => t.vertex === vertex) !==
+            'undefined'
         // there must not be an adjacent town
         const adjacentVertices = state.allEdges
             .filter((e) => e[0] === vertex || e[1] === vertex)
             .map((e) => (e[0] === vertex ? e[1] : e[0]))
         const hasAdjacentTowns =
-            state.towns.filter((t) => adjacentVertices.includes(t.vertex))
+            state.towns().filter((t) => adjacentVertices.includes(t.vertex))
                 .length > 0
 
         return !hasExistingTown && !hasAdjacentTowns

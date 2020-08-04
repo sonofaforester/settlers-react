@@ -15,10 +15,11 @@ export function getPlayerScores(state: ICatanState): IPlayerScore[] {
 }
 
 function getSinglePlayerScore(state: ICatanState, color: Color): IPlayerScore {
+    const player = state.players[color]
     const playerName = state.playerNames[Color[color]]
-    const { bricks, wheat, ore, sheep, lumber } = state.playerResources[color]
-    const roads = state.roads.filter((road) => road.color === color)
-    const towns = state.towns.filter((town) => town.color === color)
+    const { bricks, wheat, ore, sheep, lumber } = state.players[
+        color
+    ].playerResources
     const cards = state.cards.filter((card) => card.color === color)
     const hasLargestArmy = state.playerWithLargestArmy === color
     const hasLongestRoad = state.playerWithLongestRoad === color
@@ -32,9 +33,9 @@ function getSinglePlayerScore(state: ICatanState, color: Color): IPlayerScore {
         ore,
         playerColor: color,
         playerName,
-        roads,
+        roads: player.roads,
         sheep,
-        towns,
+        towns: player.towns,
         wheat,
     }
 }

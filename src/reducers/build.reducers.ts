@@ -1,16 +1,18 @@
 import { cityCost, devCardCost, roadCost, townCost } from '../constants';
 import { ICatanState, IRoad, ITown } from '../types';
-import { getCurrentPlayerColor, modifyPlayerResources, newEvent } from '../utils/utils';
+import {
+    getCurrentPlayer, getCurrentPlayerColor, modifyPlayerResources, newEvent
+} from '../utils/utils';
 import {
     canAfford, isValidCityLocation, isValidRoadLocation, isValidTownLocation
 } from '../utils/verification';
 
 export const buildRoad = (state: ICatanState, action: any) => {
-    const currentColor = getCurrentPlayerColor(state)
-    const currentResources = state.playerResources[currentColor]
+    const currentPlayer = getCurrentPlayer(state)
+    const currentResources = currentPlayer.playerResources
 
     const newRoad: IRoad = {
-        color: currentColor,
+        color: currentPlayer.color,
         edge: action.targetEdge,
     }
 
@@ -20,10 +22,12 @@ export const buildRoad = (state: ICatanState, action: any) => {
     ) {
         // TODO: check that player still has road pieces
         // TODO: calculate longest road
-        const updatedResources = modifyPlayerResources(
+        currentPlayer.playerResources = modifyPlayerResources(
             currentResources,
             roadCost
         )
+
+        currentPlayer.roads.push(newRoad)
 
         return {
             ...state,
@@ -31,16 +35,11 @@ export const buildRoad = (state: ICatanState, action: any) => {
                 ...state.eventList,
                 newEvent(
                     action.type,
-                    currentColor,
+                    currentPlayer.color,
                     'built a road',
                     'at edge [' + action.targetEdge.toString() + ']'
                 ),
             ],
-            playerResources: {
-                ...state.playerResources,
-                [currentColor]: updatedResources,
-            },
-            roads: [...state.roads, newRoad],
             turnSubAction: state.turnSubAction + 1,
         }
     } else {
@@ -53,11 +52,11 @@ export const buildTown = (state: ICatanState, action: any) => {
     // TODO: check that player has enough resources
     // TODO: calculate longest road
 
-    const currentColor = getCurrentPlayerColor(state)
-    const currentResources = state.playerResources[currentColor]
+    const currentPlayer = getCurrentPlayer(state)
+    const currentResources = currentPlayer.playerResources
 
     const newTown: ITown = {
-        color: currentColor,
+        color: currentPlayer.color,
         isCity: false,
         isPort: false,
         vertex: action.targetVtx,
@@ -67,10 +66,12 @@ export const buildTown = (state: ICatanState, action: any) => {
         canAfford(currentResources, townCost) &&
         isValidTownLocation(state, newTown)
     ) {
-        const updatedResources = modifyPlayerResources(
+        currentPlayer.playerResources = modifyPlayerResources(
             currentResources,
             townCost
         )
+
+        currentPlayer.towns.push(newTown)
 
         return {
             ...state,
@@ -78,16 +79,11 @@ export const buildTown = (state: ICatanState, action: any) => {
                 ...state.eventList,
                 newEvent(
                     action.type,
-                    currentColor,
+                    currentPlayer.color,
                     'built a town',
                     'at vertex ' + action.targetVtx
                 ),
             ],
-            playerResources: {
-                ...state.playerResources,
-                [currentColor]: updatedResources,
-            },
-            towns: [...state.towns, newTown],
             turnSubAction: state.turnSubAction + 1,
         }
     } else {
@@ -96,21 +92,21 @@ export const buildTown = (state: ICatanState, action: any) => {
 }
 
 export const upgradeTown = (state: ICatanState, action: any) => {
-    const currentColor = getCurrentPlayerColor(state)
-    const currentResources = state.playerResources[currentColor]
+    const currentPlayer = getCurrentPlayer(state)
+    const currentResources = currentPlayer.playerResources
+
     if (
         canAfford(currentResources, cityCost) &&
-        isValidCityLocation(state, currentColor, action.targetVtx)
+        isValidCityLocation(state, currentPlayer.color, action.targetVtx)
     ) {
-        const targetTown = state.towns.find(
-            (town) =>
-                town.color === currentColor && town.vertex === action.targetVtx
+        const targetTown = currentPlayer.towns.find(
+            (town) => town.vertex === action.targetVtx
         )
         if (targetTown) {
             targetTown.isCity = true
         }
 
-        const updatedResources = modifyPlayerResources(
+        currentPlayer.playerResources = modifyPlayerResources(
             currentResources,
             cityCost
         )
@@ -121,16 +117,11 @@ export const upgradeTown = (state: ICatanState, action: any) => {
                 ...state.eventList,
                 newEvent(
                     action.type,
-                    currentColor,
+                    currentPlayer.color,
                     'upgraded a town to a city',
                     'at vertex ' + action.targetVtx
                 ),
             ],
-            playerResources: {
-                ...state.playerResources,
-                [currentColor]: updatedResources,
-            },
-            towns: [...state.towns],
             turnSubAction: state.turnSubAction + 1,
         }
     } else {
@@ -140,7 +131,7 @@ export const upgradeTown = (state: ICatanState, action: any) => {
 
 export const buildDevCard = (state: ICatanState, action: any) => {
     const currentColor = getCurrentPlayerColor(state)
-    const currentResources = state.playerResources[currentColor]
+    const currentResources = state.players[currentColor].playerResources
 
     if (canAfford(currentResources, devCardCost)) {
         // get random unselected card
@@ -149,7 +140,7 @@ export const buildDevCard = (state: ICatanState, action: any) => {
         randomCard.wasPlayed = false
         randomCard.turn = state.turn
 
-        const updatedResources = modifyPlayerResources(
+        state.players[currentColor].playerResources = modifyPlayerResources(
             currentResources,
             devCardCost
         )
@@ -161,10 +152,6 @@ export const buildDevCard = (state: ICatanState, action: any) => {
                 ...state.eventList,
                 newEvent(action.type, currentColor, 'built a dev card'),
             ],
-            playerResources: {
-                ...state.playerResources,
-                [currentColor]: updatedResources,
-            },
             turnSubAction: state.turnSubAction + 1,
         }
     } else {

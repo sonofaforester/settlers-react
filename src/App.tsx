@@ -9,6 +9,7 @@ import {
     UPGRADE_TOWN
 } from './actions';
 import { createBasicBot } from './bots/basic.bot';
+import { createResourceProbBot } from './bots/resourceprob.bot';
 import { createSmarterBot } from './bots/smarterbot.bot';
 import Board from './components/board/board';
 import Narrative from './components/narrative/narrative';
@@ -66,19 +67,19 @@ class App extends React.Component<IAppProps, IAppState> {
 
     constructor(props: IAppProps) {
         super(props)
-        this.state = {
-            players: {
-                blue: createSmarterBot(Color.blue),
-                green: createBasicBot(Color.green),
-                orange: createBasicBot(Color.orange),
-                red: createBasicBot(Color.red),
-            },
-        }
+
+        props.gameState.players[Color.blue] = createSmarterBot(Color.blue)
+        props.gameState.players[Color.green] = createBasicBot(Color.green)
+        props.gameState.players[Color.orange] = createResourceProbBot(
+            Color.orange
+        )
+        props.gameState.players[Color.red] = createBasicBot(Color.red)
+
         this.props.dispatchPlayerNames({
-            blue: this.state.players.blue.getBotName(),
-            green: this.state.players.green.getBotName(),
-            orange: this.state.players.orange.getBotName(),
-            red: this.state.players.red.getBotName(),
+            blue: props.gameState.players[Color.blue].getBotName(),
+            green: props.gameState.players[Color.green].getBotName(),
+            orange: props.gameState.players[Color.orange].getBotName(),
+            red: props.gameState.players[Color.red].getBotName(),
         })
     }
 
@@ -100,7 +101,7 @@ class App extends React.Component<IAppProps, IAppState> {
         const turnSubAction = this.props.gameState.turnSubAction
         const numPlayers = this.props.gameState.playerColors.length
         const currentColor = getCurrentPlayerColor(this.props.gameState)
-        const currentPlayer = this.state.players[Color[currentColor]]
+        const currentPlayer = this.props.gameState.players[currentColor]
 
         if (playerHasWon(this.props.gameState)) {
             clearInterval(this.timerID)

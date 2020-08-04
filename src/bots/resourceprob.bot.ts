@@ -1,19 +1,19 @@
 import { dieProbability } from '../constants';
 import { Color, ICatanState } from '../types';
 import { ICatanBot } from '../types/bot';
-import { Bot } from './bot';
+import { SmarterBot } from './smarterbot.bot';
 
-export const createSmarterBot = (color: Color): ICatanBot => {
-    return new SmarterBot(color)
+export const createResourceProbBot = (color: Color): ICatanBot => {
+    return new ResourceProbBot(color)
 }
 
-export class SmarterBot extends Bot {
+class ResourceProbBot extends SmarterBot {
     constructor(color: Color) {
         super(color)
     }
 
     public getBotName() {
-        return 'Smarter Bot ' + this.savedRandomNum
+        return 'Resource Bot ' + this.savedRandomNum
     }
 
     protected sortTowns = (towns: number[], state: ICatanState): number[] => {

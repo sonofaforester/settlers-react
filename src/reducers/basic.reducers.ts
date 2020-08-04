@@ -2,25 +2,17 @@ import { INITIALIZE_GAME } from '../actions';
 import {
     cardList, edgeList, hexAdjacentVertices, hexList, numVertices, playerColors, vertexAdjacentHexes
 } from '../constants';
-import { Color, ICatanState, IPlayerResources, IRoad, ITown, Resource, Terrain } from '../types';
-import { convertTerrainToResource, getCurrentPlayerColor, newEvent } from '../utils/utils';
+import { CatanState, Color, ICatanState, IRoad, ITown, Resource, Terrain } from '../types';
+import {
+    convertTerrainToResource, getCurrentPlayer, getCurrentPlayerColor, newEvent
+} from '../utils/utils';
 
 export const initializeState = (): ICatanState => {
-    const playerResources = playerColors.reduce((accm, color) => {
-        accm[color] = {
-            bricks: 0,
-            lumber: 0,
-            ore: 0,
-            sheep: 0,
-            wheat: 0,
-        } as IPlayerResources
-        return accm
-    }, {} as { [K in Color]: IPlayerResources }) // hacky
     const playerNames = playerColors.reduce((accm, color) => {
         accm[color] = ''
         return accm
     }, {} as { [K in Color]: string }) // hacky
-    return {
+    const initialState = {
         allEdges: edgeList,
         allHexagons: hexList(),
         cards: cardList,
@@ -28,17 +20,17 @@ export const initializeState = (): ICatanState => {
         hexAdjacentVertices,
         playerColors,
         playerNames,
-        playerResources,
         playerWithLargestArmy: null,
         playerWithLongestRoad: null,
-        roads: [],
+        players: [],
         thiefHex: hexList().findIndex((hex) => hex.terrain === Terrain.desert),
         totalVertices: numVertices,
-        towns: [],
         turn: 0,
         turnSubAction: 0,
         vertexAdjacentHexes,
     }
+
+    return new CatanState(initialState)
 }
 
 export const setPlayerNames = (state: ICatanState, action: any) => {
@@ -65,42 +57,47 @@ export const endPlayerTurn = (state: ICatanState, action: any) => {
 export const initialMove1 = (state: ICatanState, action: any) => {
     // TODO: check that townVertex and roadEdge is available
 
-    const currentColor = getCurrentPlayerColor(state)
+    const currentPlayer = getCurrentPlayer(state)
     const newTown: ITown = {
-        color: currentColor,
+        color: currentPlayer.color,
         isCity: false,
         isPort: false,
         vertex: action.townVertex,
     }
     const newRoad: IRoad = {
-        color: currentColor,
+        color: currentPlayer.color,
         edge: action.roadEdge,
     }
+
+    currentPlayer.roads.push(newRoad)
+    currentPlayer.towns.push(newTown)
+
     return {
         ...state,
         eventList: [
             ...state.eventList,
-            newEvent(action.type, currentColor, 'makes initial move 1'),
+            newEvent(action.type, currentPlayer.color, 'makes initial move 1'),
         ],
-        roads: [...state.roads, newRoad],
-        towns: [...state.towns, newTown],
     }
 }
 
 export const initialMove2 = (state: ICatanState, action: any) => {
     // TODO: check that townVertex and roadEdge is available
-    const currentColor = getCurrentPlayerColor(state)
-    const currentResources = state.playerResources[currentColor]
+    const currentPlayer = getCurrentPlayer(state)
     const newTown: ITown = {
-        color: currentColor,
+        color: currentPlayer.color,
         isCity: false,
         isPort: false,
         vertex: action.townVertex,
     }
     const newRoad: IRoad = {
-        color: currentColor,
+        color: currentPlayer.color,
         edge: action.roadEdge,
     }
+
+    currentPlayer.roads.push(newRoad)
+    currentPlayer.towns.push(newTown)
+
     // get surrounding hexagons
     const adjHexagons = state.hexAdjacentVertices.reduce(
         (accm, adjVtces, index) => {
@@ -116,7 +113,8 @@ export const initialMove2 = (state: ICatanState, action: any) => {
     adjHexagons.forEach((hexIdx) => {
         const res = convertTerrainToResource(state.allHexagons[hexIdx].terrain)
         if (res) {
-            currentResources[res] = currentResources[res] + 1
+            currentPlayer.playerResources[res] =
+                currentPlayer.playerResources[res] + 1
         }
     })
 
@@ -124,20 +122,13 @@ export const initialMove2 = (state: ICatanState, action: any) => {
         ...state,
         eventList: [
             ...state.eventList,
-            newEvent(action.type, currentColor, 'makes initial move 2'),
+            newEvent(action.type, currentPlayer.color, 'makes initial move 2'),
         ],
-        playerResources: {
-            ...state.playerResources,
-            [currentColor]: currentResources,
-        },
-        roads: [...state.roads, newRoad],
-        towns: [...state.towns, newTown],
     }
 }
 
 export const distributeResources = (state: ICatanState, action: any) => {
     const dieRoll = action.dieRoll
-    const currentResources = state.playerResources
 
     // get all hexes with matching dieRoll
     const matchingHexagons = state.allHexagons.reduce((accm, hex, index) => {
@@ -154,12 +145,14 @@ export const distributeResources = (state: ICatanState, action: any) => {
         const res = convertTerrainToResource(state.allHexagons[hexIdx].terrain)
         // for each vertex, get the town
         if (res) {
-            state.towns
+            state
+                .towns()
                 .filter((town) => adjVtces.indexOf(town.vertex) > -1)
                 .forEach((town) => {
-                    currentResources[town.color][Resource[res]] =
-                        currentResources[town.color][Resource[res]] +
-                        (town.isCity ? 2 : 1)
+                    state.players[town.color].playerResources[Resource[res]] =
+                        state.players[town.color].playerResources[
+                            Resource[res]
+                        ] + (town.isCity ? 2 : 1)
                 })
         }
     })
@@ -174,7 +167,6 @@ export const distributeResources = (state: ICatanState, action: any) => {
                 'Distribute resources from die roll ' + dieRoll
             ),
         ],
-        playerResources: currentResources,
         turnSubAction: state.turnSubAction + 1,
     }
 }
@@ -183,7 +175,7 @@ export const moveThief = (state: ICatanState, action: any) => {
     // TODO: check that the new thiefHex is different from the old one
     // TODO: check that target player has a town/city on newHex
 
-    const currentResources = state.playerResources
+    const currentResources = state.players.map((p) => p.playerResources)
     const currentColor = getCurrentPlayerColor(state)
     // get random resource from
     if (action.targetPlayer) {
@@ -235,7 +227,6 @@ export const moveThief = (state: ICatanState, action: any) => {
             ...state.eventList,
             newEvent(action.type, currentColor, 'moves thief'),
         ],
-        playerResources: currentResources,
         thiefHex: action.newHex,
         turnSubAction: state.turnSubAction + 1,
     }
